@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Piano Virtual</title>
+    <style>
+        body {
+            background-color: #222;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            color: white;
+            font-family: sans-serif;
+            user-select: none;
+            touch-action: none;
+        }
+        .piano {
+            display: flex;
+            position: relative;
+        }
+        .key {
+            width: 60px;
+            height: 200px;
+            margin: 1px;
+            background: white;
+            border: 1px solid #333;
+            border-radius: 5px;
+            box-shadow: 0 4px #999;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.1s, transform 0.1s;
+        }
+        .key:active,
+        .key.pressed {
+            background: #ccc;
+            transform: translateY(2px);
+        }
+
+        .key.black {
+            width: 40px;
+            height: 120px;
+            background: black;
+            color: white;
+            position: absolute;
+            margin-left: -20px;
+            z-index: 2;
+        }
+        .key.black:active,
+        .key.black.pressed {
+            background: #444;
+            transform: translateY(2px);
+        }
+
+        .note-label {
+            margin-bottom: 5px;
+            font-size: 14px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Piano Virtual</h1>
+    <p>Use teclado, mouse ou toque na tela. Teclas: A S D F G H J (C D E F G A B) e W E T Y U (sustenidos)</p>
+
+    <div class="piano">
+        <div class="key" data-note="C"><div class="note-label">C (A)</div></div>
+        <div class="key black" data-note="C#" style="left: 45px;"></div>
+        <div class="key" data-note="D"><div class="note-label">D (S)</div></div>
+        <div class="key black" data-note="D#" style="left: 105px;"></div>
+        <div class="key" data-note="E"><div class="note-label">E (D)</div></div>
+        <div class="key" data-note="F"><div class="note-label">F (F)</div></div>
+        <div class="key black" data-note="F#" style="left: 225px;"></div>
+        <div class="key" data-note="G"><div class="note-label">G (G)</div></div>
+        <div class="key black" data-note="G#" style="left: 285px;"></div>
+        <div class="key" data-note="A"><div class="note-label">A (H)</div></div>
+        <div class="key black" data-note="A#" style="left: 345px;"></div>
+        <div class="key" data-note="B"><div class="note-label">B (J)</div></div>
+    </div>
+
+    <script>
+        const keys = document.querySelectorAll('.key');
+        const keyMap = {
+            'a': 'C',
+            's': 'D',
+            'd': 'E',
+            'f': 'F',
+            'g': 'G',
+            'h': 'A',
+            'j': 'B',
+            'w': 'C#',
+            'e': 'D#',
+            't': 'F#',
+            'y': 'G#',
+            'u': 'A#'
+        };
+
+        function playNote(note) {
+            const audio = new Audio(`https://piano-sounds.s3-us-west-2.amazonaws.com/${note}.mp3`);
+            audio.play();
+        }
+
+        function pressKey(note) {
+            const key = [...keys].find(k => k.dataset.note === note);
+            if (key) {
+                key.classList.add('pressed');
+                setTimeout(() => key.classList.remove('pressed'), 150);
+            }
+        }
+
+        // Eventos para clique de mouse e toque (touch)
+        keys.forEach(key => {
+            const note = key.dataset.note;
+
+            function startPress() {
+                playNote(note);
+                key.classList.add('pressed');
+            }
+
+            function endPress() {
+                key.classList.remove('pressed');
+            }
+
+            // Mouse
+            key.addEventListener('mousedown', startPress);
+            key.addEventListener('mouseup', endPress);
+            key.addEventListener('mouseleave', endPress);
+
+            // Toque (touch)
+            key.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                startPress();
+            });
+            key.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                endPress();
+            });
+            key.addEventListener('touchcancel', (e) => {
+                e.preventDefault();
+                endPress();
+            });
+        });
+
+        // Evento de teclado
+        document.addEventListener('keydown', (e) => {
+            const note = keyMap[e.key.toLowerCase()];
+            if (note) {
+                playNote(note);
+                pressKey(note);
+            }
+        });
+    </script>
+
+</body>
+</html>
